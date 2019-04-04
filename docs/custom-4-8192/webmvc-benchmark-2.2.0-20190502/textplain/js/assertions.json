@@ -1,0 +1,10 @@
+{
+  "simulation": "TextPlain",
+  "simulationId": "textplain",
+  "start": 1556789377844,
+  "description": "Benchmark for application webmvc-benchmark-2.2.0-20190502",
+  "scenarios": ["Receive plain Text"],
+  "assertions": [
+
+  ]
+}

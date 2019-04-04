@@ -1,0 +1,10 @@
+{
+  "simulation": "HtmlGet",
+  "simulationId": "htmlget",
+  "start": 1556795770385,
+  "description": "Benchmark for application reactornetty-benchmark-0.8.6",
+  "scenarios": ["Get HTML view"],
+  "assertions": [
+
+  ]
+}

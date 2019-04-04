@@ -1,0 +1,10 @@
+{
+  "simulation": "HtmlGet",
+  "simulationId": "htmlget",
+  "start": 1556795844507,
+  "description": "Benchmark for application webfluxfn-benchmark-2.1.0",
+  "scenarios": ["Get HTML view"],
+  "assertions": [
+
+  ]
+}
