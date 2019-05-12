@@ -16,6 +16,7 @@
 
 package io.spring.sample.webfluxfnbenchmark;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 
@@ -40,6 +41,7 @@ public class RouterFunctionConfig {
 	public RouterFunction<ServerResponse> routerFunctions() {
 		return RouterFunctions.route()
 				.GET("/text", this::hello)
+				.GET("/text/{delay}", this::helloDelay)
 				.POST("/echo", this::echo)
 				.POST("/user", accept(MediaType.APPLICATION_JSON)
 						.and(contentType(MediaType.APPLICATION_JSON)), this::createUser)
@@ -52,6 +54,15 @@ public class RouterFunctionConfig {
 		return ServerResponse.ok()
 				.contentType(MediaType.TEXT_PLAIN)
 				.syncBody("Hello, World!");
+	}
+
+	private Mono<ServerResponse> helloDelay(ServerRequest req) {
+		String delay = req.pathVariable("delay");
+		Mono<ServerResponse> responseMono =
+				ServerResponse.ok()
+						.contentType(MediaType.TEXT_PLAIN)
+						.syncBody("Hello, World!");
+		return responseMono.delayElement(Duration.ofMillis(Long.parseLong(delay)));
 	}
 
 	private Mono<ServerResponse> echo(ServerRequest req) {

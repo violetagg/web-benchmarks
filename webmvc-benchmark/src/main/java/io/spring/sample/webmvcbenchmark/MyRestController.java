@@ -24,6 +24,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
+
+import java.time.Duration;
 
 @RestController
 public class MyRestController {
@@ -31,6 +34,12 @@ public class MyRestController {
 	@GetMapping("/text")
 	public String text() {
 		return "Hello, World!";
+	}
+
+	@GetMapping("/text/{delay}")
+	public Mono<String> text(@PathVariable("delay") long delay) {
+		Mono<String> responseMono = Mono.just("Hello, World!");
+		return responseMono.delayElement(Duration.ofMillis(delay));
 	}
 
 	@PostMapping("/echo")
