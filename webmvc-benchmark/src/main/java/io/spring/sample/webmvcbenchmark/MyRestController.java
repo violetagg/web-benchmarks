@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -77,6 +79,21 @@ public class MyRestController {
 				.delayElements(Duration.ofMillis(delay))
 				.map(l -> body)
 				.onBackpressureBuffer();
+	}
+
+	@GetMapping("/remote_rest_template")
+	public ResponseEntity<String> remote_rest_template() {
+		RestTemplate restTemplate = new RestTemplate();
+		return restTemplate.getForEntity("http://example.com", String.class);
+	}
+
+	@GetMapping("/remote_web_client")
+	public Mono<String> remote_web_client() {
+		return WebClient.create()
+				.get()
+				.uri("http://example.com")
+				.retrieve()
+				.bodyToMono(String.class);
 	}
 
 	private static final char PREFIX = 'A';

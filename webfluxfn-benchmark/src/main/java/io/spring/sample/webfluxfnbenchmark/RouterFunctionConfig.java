@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -45,6 +46,7 @@ public class RouterFunctionConfig {
 		return RouterFunctions.route()
 				.GET("/text", this::hello)
 				.GET("/text/{delay}", this::helloDelay)
+				.GET("/remote", this::remote)
 				.POST("/echo", this::echo)
 				.POST("/user", accept(MediaType.APPLICATION_JSON)
 						.and(contentType(MediaType.APPLICATION_JSON)), this::createUser)
@@ -118,6 +120,17 @@ public class RouterFunctionConfig {
 								.delayElements(Duration.ofMillis(Long.parseLong(delay)))
 								.map(l -> body)
 								.onBackpressureBuffer(),
+						String.class);
+	}
+
+	private Mono<ServerResponse> remote(ServerRequest req) {
+		return ServerResponse.ok()
+				.contentType(MediaType.TEXT_PLAIN)
+				.body(WebClient.create()
+								.get()
+								.uri("http://example.com")
+								.retrieve()
+								.bodyToMono(String.class),
 						String.class);
 	}
 
