@@ -19,7 +19,10 @@ package io.spring.sample.webfluxfnbenchmark;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.context.annotation.Bean;
@@ -47,6 +50,8 @@ public class RouterFunctionConfig {
 						.and(contentType(MediaType.APPLICATION_JSON)), this::createUser)
 				.GET("/user/{id}", accept(MediaType.APPLICATION_JSON), this::showUser)
 				.GET("/home", this::home)
+				.GET("/stream/{elements}/{chunk}", this::stream)
+				.GET("/stream/{elements}/{chunk}/{delay}", this::streamDelay)
 				.build();
 	}
 
@@ -88,4 +93,42 @@ public class RouterFunctionConfig {
 				.render("home", model);
 	}
 
+	private Mono<ServerResponse> stream(ServerRequest req) {
+		String elements = req.pathVariable("elements");
+		String chunk = req.pathVariable("chunk");
+		String body = getGeneratedString(Integer.parseInt(chunk));
+
+		return ServerResponse.ok()
+				.contentType(MediaType.TEXT_EVENT_STREAM)
+				.body(Flux.range(0, Integer.parseInt(elements))
+								.map(l -> body)
+								.onBackpressureBuffer(),
+						String.class);
+	}
+
+	private Mono<ServerResponse> streamDelay(ServerRequest req) {
+		String elements = req.pathVariable("elements");
+		String chunk = req.pathVariable("chunk");
+		String delay = req.pathVariable("delay");
+		String body = getGeneratedString(Integer.parseInt(chunk));
+
+		return ServerResponse.ok()
+				.contentType(MediaType.TEXT_EVENT_STREAM)
+				.body(Flux.range(0, Integer.parseInt(elements))
+								.delayElements(Duration.ofMillis(Long.parseLong(delay)))
+								.map(l -> body)
+								.onBackpressureBuffer(),
+						String.class);
+	}
+
+	private static final char PREFIX = 'A';
+	private final Map<Integer, String> generatedStrings = new ConcurrentHashMap<>();
+
+	private String getGeneratedString(Integer length) {
+		String str = generatedStrings.get(length);
+		if (str == null) {
+			str = generatedStrings.computeIfAbsent(length, l -> StringUtils.repeat(PREFIX, l));
+		}
+		return str;
+	}
 }

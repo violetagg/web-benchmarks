@@ -16,6 +16,7 @@
 package io.spring.sample.webmvcbenchmark;
 
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +25,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 public class MyRestController {
@@ -57,4 +61,32 @@ public class MyRestController {
 		return new User(id, "Ben Chmark");
 	}
 
+	@GetMapping(path = "/stream/{elements}/{chunk}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+	public Flux<String> stream(@PathVariable("elements") int elements, @PathVariable("chunk") int chunk) {
+		String body = getGeneratedString(chunk);
+		return Flux.range(0, elements)
+				.map(l -> body)
+				.onBackpressureBuffer();
+	}
+
+	@GetMapping(path = "/stream/{elements}/{chunk}/{delay}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+	public Flux<String> streamDelay(@PathVariable("elements") int elements, @PathVariable("chunk") int chunk,
+			@PathVariable("delay") long delay) {
+		String body = getGeneratedString(chunk);
+		return Flux.range(0, elements)
+				.delayElements(Duration.ofMillis(delay))
+				.map(l -> body)
+				.onBackpressureBuffer();
+	}
+
+	private static final char PREFIX = 'A';
+	private final Map<Integer, String> generatedStrings = new ConcurrentHashMap<>();
+
+	private String getGeneratedString(Integer length) {
+		String str = generatedStrings.get(length);
+		if (str == null) {
+			str = generatedStrings.computeIfAbsent(length, l -> StringUtils.repeat(PREFIX, l));
+		}
+		return str;
+	}
 }
